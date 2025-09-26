@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:16
+    container_name: nest_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: appdb
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d appdb']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: nest_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/appdb?schema=public
+    ports:
+      - '3000:3000'
+      - "5555:5555"
+    command: >
+      sh -c "
+      npx prisma generate &&
+      npx prisma migrate deploy &&
+      node dist/main.js
+      "
+    # Si querés hot-reload en dev, podés bindear código y usar start:dev:
+    # volumes:
+    #   - .:/app
+    # command: >
+    #   sh -c "npm run start:dev"
+
+volumes:
+  db_data:
