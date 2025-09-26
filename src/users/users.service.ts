@@ -1,56 +1,60 @@
+// src/users/users.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './entities/user.entity';
-import { v4 as uuidv4 } from 'uuid';
+import type { User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  create(createUserDto: CreateUserDto): User {
-    const newUser = new User({
-      id: uuidv4(),
-      name: createUserDto.name,
-      email: createUserDto.email,
+  // Crear usuario en DB
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    return this.prisma.user.create({
+      data: {
+        name: createUserDto.name,
+        email: createUserDto.email,
+      },
     });
-    
-    this.users.push(newUser);
-    return newUser;
   }
 
-  findAll(): User[] {
-    return this.users;
+  // Listar todos desde DB
+  async findAll(): Promise<User[]> {
+    return this.prisma.user.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  findOne(id: string): User {
-    const user = this.users.find(user => user.id === id);
+  // Buscar uno por id
+  async findOne(id: string): Promise<User> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
     return user;
   }
 
-  update(id: string, updateUserDto: Partial<CreateUserDto>): User {
-    const userIndex = this.users.findIndex(user => user.id === id);
-    if (userIndex === -1) {
+  // Actualizar por id
+  async update(
+    id: string,
+    updateUserDto: Partial<CreateUserDto>,
+  ): Promise<User> {
+    try {
+      return await this.prisma.user.update({
+        where: { id },
+        data: updateUserDto, // updatedAt se actualiza solo con @updatedAt
+      });
+    } catch {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-
-    this.users[userIndex] = new User({
-      ...this.users[userIndex],
-      ...updateUserDto,
-      updatedAt: new Date(),
-    });
-
-    return this.users[userIndex];
   }
 
-  remove(id: string): void {
-    const userIndex = this.users.findIndex(user => user.id === id);
-    if (userIndex === -1) {
+  // Borrar por id
+  async remove(id: string): Promise<void> {
+    try {
+      await this.prisma.user.delete({ where: { id } });
+    } catch {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-
-    this.users.splice(userIndex, 1);
   }
 }

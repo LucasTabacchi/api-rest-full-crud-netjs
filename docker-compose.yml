@@ -28,7 +28,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/appdb?schema=public
     ports:
       - '3000:3000'
-      - "5555:5555"
+      - "5556:5555"
     command: >
       sh -c "
       npx prisma generate &&

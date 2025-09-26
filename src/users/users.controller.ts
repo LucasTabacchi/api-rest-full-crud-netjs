@@ -15,11 +15,12 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiCreatedResponse,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import { UserResponseDto } from './entities/user-response.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -28,115 +29,116 @@ export class UsersController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Crear un nuevo usuario',
-    description: 'Crea un nuevo usuario en el sistema con los datos proporcionados'
+    description: 'Crea un nuevo usuario en el sistema con los datos proporcionados',
   })
-  @ApiBody({ 
+  @ApiBody({
     type: CreateUserDto,
-    description: 'Datos del usuario a crear'
+    description: 'Datos del usuario a crear',
   })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiCreatedResponse({
     description: 'Usuario creado exitosamente',
-    type: User
+    type: UserResponseDto,
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Datos de entrada inválidos'
+  @ApiResponse({
+    status: 400,
+    description: 'Datos de entrada inválidos',
   })
-  create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
   @Get()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Obtener todos los usuarios',
-    description: 'Retorna una lista con todos los usuarios registrados en el sistema'
+    description:
+      'Retorna una lista con todos los usuarios registrados en el sistema',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Lista de usuarios obtenida exitosamente',
-    type: [User]
+    type: [UserResponseDto],
   })
-  findAll() {
+  async findAll() {
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Obtener un usuario por ID',
-    description: 'Busca y retorna un usuario específico usando su ID único'
+    description: 'Busca y retorna un usuario específico usando su ID único',
   })
-  @ApiParam({ 
-    name: 'id', 
+  @ApiParam({
+    name: 'id',
     description: 'ID único del usuario',
-    example: '123e4567-e89b-12d3-a456-426614174000'
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Usuario encontrado exitosamente',
-    type: User
+    type: UserResponseDto,
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Usuario no encontrado'
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario no encontrado',
   })
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Actualizar un usuario',
-    description: 'Actualiza parcialmente los datos de un usuario existente'
+    description: 'Actualiza parcialmente los datos de un usuario existente',
   })
-  @ApiParam({ 
-    name: 'id', 
+  @ApiParam({
+    name: 'id',
     description: 'ID único del usuario a actualizar',
-    example: '123e4567-e89b-12d3-a456-426614174000'
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiBody({ 
+  @ApiBody({
     type: UpdateUserDto,
-    description: 'Datos del usuario a actualizar (campos opcionales)'
+    description: 'Datos del usuario a actualizar (campos opcionales)',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Usuario actualizado exitosamente',
-    type: User
+    type: UserResponseDto,
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Usuario no encontrado'
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario no encontrado',
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Datos de entrada inválidos'
+  @ApiResponse({
+    status: 400,
+    description: 'Datos de entrada inválidos',
   })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Eliminar un usuario',
-    description: 'Elimina permanentemente un usuario del sistema'
+    description: 'Elimina permanentemente un usuario del sistema',
   })
-  @ApiParam({ 
-    name: 'id', 
+  @ApiParam({
+    name: 'id',
     description: 'ID único del usuario a eliminar',
-    example: '123e4567-e89b-12d3-a456-426614174000'
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiResponse({ 
-    status: 204, 
-    description: 'Usuario eliminado exitosamente'
+  @ApiResponse({
+    status: 204,
+    description: 'Usuario eliminado exitosamente',
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Usuario no encontrado'
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario no encontrado',
   })
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  async remove(@Param('id') id: string) {
+    await this.usersService.remove(id);
+    // No retornes body para que efectivamente sea 204 No Content
   }
 }
